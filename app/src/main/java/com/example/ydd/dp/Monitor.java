@@ -36,6 +36,8 @@ public class Monitor {
 
     private boolean valid;
 
+
+    private Object temporary;
     /**
      * 当前监视器的打印队列
      */
@@ -56,7 +58,7 @@ public class Monitor {
 
         myApplication = (MyApplication) context.getApplicationContext();
 
-         BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
@@ -91,7 +93,10 @@ public class Monitor {
                                 //打印机连接是正常的，可以出栈了
                                 if (linkedBlockingQueue.size() > 0) {
 
-                                    sendReceiptWithResponse(linkedBlockingQueue.take());
+
+                                    temporary = linkedBlockingQueue.take();
+
+                                    sendReceiptWithResponse(temporary);
                                 }
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -107,7 +112,7 @@ public class Monitor {
                                     closePort(mPrinterIndex);
                                     openPort(mPrinterIndex, ip);
                                 }
-                                statusChange.onChanged(id,"已断开", re);
+                                statusChange.onChanged(id, "已断开", re);
                             }
                             if ((byte) (status & GpCom.STATE_PAPER_ERR) > 0) {
                                 re += "打印机缺纸";
@@ -123,14 +128,16 @@ public class Monitor {
                                 re += "连接超时关闭";
                                 closePort(mPrinterIndex);
                                 valid = false;
-                                statusChange.onChanged(id,"已断开", re);
+                                statusChange.onChanged(id, "已断开", re);
                             }
                         }
 
                     }
                 } else if (GpCom.ACTION_RECEIPT_RESPONSE.equals(action)) {
 
-                    statusChange.onChanged(id, "已连接","打印完成");
+                    temporary = null;
+
+                    statusChange.onChanged(id, "已连接", "打印完成");
 
                 }
             }
@@ -146,11 +153,11 @@ public class Monitor {
     }
 
 
-
     /**
      * 仅仅是使用网络打印机
+     *
      * @param mPrinterIndex 打印机的指针
-     * @param ip 打印机的地址
+     * @param ip            打印机的地址
      * @return 返回状态
      */
 
@@ -199,6 +206,19 @@ public class Monitor {
     public void take() {
 
 
+        //上一次不为空说明打印失败，先保存，然后再去打印下一个
+        if (temporary != null) {
+
+            try {
+                linkedBlockingQueue.put(temporary);
+
+                temporary = null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+
         //打印前检查一下打印机启用状态
         if (!valid) {
             return;
@@ -224,8 +244,6 @@ public class Monitor {
     }
 
 
-
-
     /**
      * 实际要打印的方法
      *
@@ -233,24 +251,16 @@ public class Monitor {
      */
     private void sendReceiptWithResponse(Object msg) {
 
-        if(msg instanceof PrintBill){
 
-
-        }else if(msg instanceof CheckOrder){
-
-
-        }
-
-
-/*        EscCommand esc = new EscCommand();
+        EscCommand esc = new EscCommand();
         esc.addInitializePrinter();
-        *//* 打印文字 *//*
+        //  打印文字
         esc.addText(msg.toString());
 
         esc.addSelectPrintModes(FONTA, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF, EscCommand.ENABLE.OFF);// 取消倍高倍宽
 
         esc.addSelectJustification(EscCommand.JUSTIFICATION.LEFT);// 设置打印左对齐
-        *//* 打印文字 *//*
+        //  打印文字
         esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印左对齐
         esc.addText("Completed!\r\n"); // 打印结束
         // 开钱箱
@@ -273,7 +283,7 @@ public class Monitor {
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }*/
+        }
     }
 
     /**
@@ -285,7 +295,7 @@ public class Monitor {
 
     interface StatusChange {
 
-        void onChanged(int index, String code,String massage);
+        void onChanged(int index, String code, String massage);
     }
 
 }

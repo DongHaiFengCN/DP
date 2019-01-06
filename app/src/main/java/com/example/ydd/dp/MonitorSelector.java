@@ -2,11 +2,6 @@ package com.example.ydd.dp;
 
 import android.util.Log;
 
-import com.couchbase.lite.MutableArray;
-import com.couchbase.lite.MutableDocument;
-
-import java.util.List;
-
 /**
  * 完成打印序列的加载以及分配
  */
@@ -34,7 +29,7 @@ public class MonitorSelector {
                     try {
 
                         //每隔一秒询问一次所有的monitor
-                        Thread.sleep(1000);
+                        Thread.sleep(900);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -87,15 +82,15 @@ public class MonitorSelector {
             return false;
         }
         monitor.addMsgToQueue(msg);
-        
+
         return true;
     }
 
-    /**
+ /*   *//**
      * 将数据持久化到数据库
      *
      * @param msg 订单
-     */
+     *//*
     private static void persistence(Object msg) {
 
         if (msg instanceof PrintBill) {
@@ -143,7 +138,7 @@ public class MonitorSelector {
 
         }
     }
-
+*/
 
     /**
      * 关闭打印机监听

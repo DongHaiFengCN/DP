@@ -47,27 +47,78 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        Log.e("DOAING", "重启了？？？");
     }
 
     public void getPrinterStatusClicked1(View view) {
 
-        if (MonitorSelector.addMsgToQueue(0, "1-1")) {
-            Log.e("DOAING", "添加成功～");
-        } else {
-            Log.e("DOAING", "添加失败～");
-        }
 
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(0, "1-1");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(0, "1-2");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(0, "1-3");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(0, "1-4");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(0, "1-5");
+            }
+        }).start();
 
     }
 
     public void getPrinterStatusClicked2(View view) {
 
-        if (MonitorSelector.addMsgToQueue(1, "2-1")) {
-            Log.e("DOAING", "添加成功～");
-        } else {
-            Log.e("DOAING", "添加失败～");
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(1, "2-1");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(1, "2-2");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(1, "2-3");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(1, "2-4");
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                MonitorSelector.addMsgToQueue(1, "2-5");
+            }
+        }).start();
+
+
 
 
     }

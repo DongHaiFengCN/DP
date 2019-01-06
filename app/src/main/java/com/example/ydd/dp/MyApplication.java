@@ -16,21 +16,12 @@ import com.gprinter.service.GpPrintService;
 
 public class MyApplication extends Application {
 
-    public static boolean isIsRun() {
-        return isRun;
-    }
-
-    private static boolean isRun = true;
-
-    private static Monitor[] monitorList = new Monitor[20];
     public GpService getmGpService() {
         return mGpService;
     }
 
     private GpService mGpService = null;
     private PrinterServiceConnection conn = null;
-    public static Database database;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -38,13 +29,6 @@ public class MyApplication extends Application {
         AppException appException = AppException.getInstance();
         appException.init(getApplicationContext());
 
-        //初始化数据库
-        DatabaseConfiguration config = new DatabaseConfiguration(getApplicationContext());
-        try {
-            database = new Database("Local", config);
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
         connection();
         MonitorSelector.startService();
     }

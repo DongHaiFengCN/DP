@@ -27,9 +27,4 @@
         android:layout_height="wrap_content"
         android:onClick="getPrinterStatusClicked2"
         android:text="wifi2打印" />
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="close"
-        android:text="关闭服务" />
 </LinearLayout>
