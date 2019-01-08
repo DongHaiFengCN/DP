@@ -22,25 +22,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
 
-        m1 = new Monitor(getApplicationContext());
-        m1.addStatusChangeListener(new Monitor.StatusChange() {
-            @Override
-            public void onChanged(int index, String code, String massage) {
-                Log.e("DOAING", index + "--" + code + "--" + massage);
-
-
-            }
-
-        });
-        m2 = new Monitor(getApplicationContext());
-        m2.addStatusChangeListener(new Monitor.StatusChange() {
-            @Override
-            public void onChanged(int index, String code, String massage) {
-                Log.e("DOAING", index + "--" + code + "--" + massage);
-            }
-
-
-        });
     }
 
     @Override
@@ -52,73 +33,9 @@ public class MainActivity extends AppCompatActivity {
     public void getPrinterStatusClicked1(View view) {
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(0, "1-1");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(0, "1-2");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(0, "1-3");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(0, "1-4");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(0, "1-5");
-            }
-        }).start();
-
     }
 
     public void getPrinterStatusClicked2(View view) {
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(1, "2-1");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(1, "2-2");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(1, "2-3");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(1, "2-4");
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                MonitorSelector.addMsgToQueue(1, "2-5");
-            }
-        }).start();
-
-
 
 
     }
@@ -126,11 +43,14 @@ public class MainActivity extends AppCompatActivity {
     public void openWifi1(View view) {
 
 
-        if (m1.openPort(0, "192.168.2.200") == 0) {
-            Log.e("DOAING", 0 + "成功～");
-            MonitorSelector.addMonitor(m1);
+        new Monitor.Builder(getApplicationContext(), new Monitor.OpenStateListener() {
+            @Override
+            public void state(int index, String msg) {
 
-        }
+                Log.e("DOAING", index + msg);
+
+            }
+        }).setIndex(0).setIp("192.168.2.200").setPortNumber(9100).build();
 
 
     }
@@ -138,12 +58,14 @@ public class MainActivity extends AppCompatActivity {
     public void openWifi2(View view) {
 
 
-        if (m2.openPort(1, "192.168.2.248") == 0) {
-            Log.e("DOAING", 1 + "成功～");
+        new Monitor.Builder(getApplicationContext(), new Monitor.OpenStateListener() {
+            @Override
+            public void state(int index, String msg) {
 
-            MonitorSelector.addMonitor(m2);
-        }
+                Log.e("DOAING", index + msg);
 
+            }
+        }).setIndex(1).setIp("192.168.2.248").setPortNumber(9100).build();
     }
 
 

@@ -1,20 +1,27 @@
 package com.example.ydd.dp;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Database;
-import com.couchbase.lite.DatabaseConfiguration;
 import com.gprinter.aidl.GpService;
+import com.gprinter.command.GpCom;
 import com.gprinter.service.GpPrintService;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.gprinter.service.GpPrintService.PRINTER_ID;
+
 public class MyApplication extends Application {
+
+    private static final int MAIN_QUERY_PRINTER_STATUS = 0xfe;
 
     public GpService getmGpService() {
         return mGpService;
@@ -22,16 +29,20 @@ public class MyApplication extends Application {
 
     private GpService mGpService = null;
     private PrinterServiceConnection conn = null;
+    static ExecutorService executor;
+
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         AppException appException = AppException.getInstance();
         appException.init(getApplicationContext());
-
         connection();
-        MonitorSelector.startService();
+
+
     }
+
 
     @Override
     public void onLowMemory() {
@@ -39,6 +50,7 @@ public class MyApplication extends Application {
         Log.d("DOAING", "onLowMemory～～～～～～～");
         super.onLowMemory();
     }
+
     @Override
     public void onTrimMemory(int level) {
         // 程序在内存清理的时候执行
@@ -50,6 +62,10 @@ public class MyApplication extends Application {
         conn = new PrinterServiceConnection();
         Intent intent = new Intent(this, GpPrintService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE); // bindService
+    }
+
+    public static ExecutorService getExecutor() {
+        return executor == null ? (executor = Executors.newCachedThreadPool()) : executor;
     }
 
     class PrinterServiceConnection implements ServiceConnection {
