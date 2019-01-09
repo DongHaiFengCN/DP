@@ -27,4 +27,17 @@
         android:layout_height="wrap_content"
         android:onClick="getPrinterStatusClicked2"
         android:text="wifi2打印" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="getStatus"
+        android:text="Wi-Fi 2 状态"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="get"
+        android:text="一个接一个获取未打印的单子" />
 </LinearLayout>

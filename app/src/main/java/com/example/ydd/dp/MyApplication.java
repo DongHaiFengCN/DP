@@ -1,27 +1,20 @@
 package com.example.ydd.dp;
 
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
 import com.gprinter.aidl.GpService;
-import com.gprinter.command.GpCom;
 import com.gprinter.service.GpPrintService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.gprinter.service.GpPrintService.PRINTER_ID;
-
 public class MyApplication extends Application {
-
-    private static final int MAIN_QUERY_PRINTER_STATUS = 0xfe;
 
     public GpService getmGpService() {
         return mGpService;
@@ -29,17 +22,15 @@ public class MyApplication extends Application {
 
     private GpService mGpService = null;
     private PrinterServiceConnection conn = null;
-    static ExecutorService executor;
+    static ExecutorService executor = Executors.newCachedThreadPool();
 
 
     @Override
     public void onCreate() {
         super.onCreate();
-
         AppException appException = AppException.getInstance();
         appException.init(getApplicationContext());
         connection();
-
 
     }
 
@@ -65,7 +56,7 @@ public class MyApplication extends Application {
     }
 
     public static ExecutorService getExecutor() {
-        return executor == null ? (executor = Executors.newCachedThreadPool()) : executor;
+        return executor;
     }
 
     class PrinterServiceConnection implements ServiceConnection {
