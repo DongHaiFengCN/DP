@@ -32,34 +32,10 @@ public class MainActivity extends AppCompatActivity {
         t1 = findViewById(R.id.msg1);
         t2 = findViewById(R.id.msg2);
 
-
         m1 = new Monitor.Builder(getApplicationContext())
                 .setIndex(1)
                 .setIp("192.168.2.248")
-                .setLifeListener(new Monitor.LifeListener() {
-                    @Override
-                    public void in(int index, Object msg) {
-
-                        Log.e("DOAING", "添加 " + msg + " 到 " + index + " 打印机序列");
-
-                    }
-
-                    @Override
-                    public void print(int index, GpService gpService,Object take) {
-
-
-                        Utils.sendReceiptWithResponse(index,gpService, (String) take);
-
-
-                    }
-
-                    @Override
-                    public void out(int index, Object msg) {
-
-                        Log.e("DOAING", index + "打印机打印完成：" + msg);
-
-                    }
-                })
+                .setLifeListener(new MyLifeListener())
                 .setOpenStateListener(new MyOpenStateListen(this))
                 .build();
 
@@ -67,24 +43,7 @@ public class MainActivity extends AppCompatActivity {
         m2 = new Monitor.Builder(getApplicationContext())
                 .setIndex(2)
                 .setIp("192.168.2.200")
-                .setLifeListener(new Monitor.LifeListener() {
-                    @Override
-                    public void in(int index, Object msg) {
-
-                    }
-
-                    @Override
-                    public void print(int index, GpService gpService, Object take) {
-
-                        Utils.sendReceiptWithResponse(index,gpService, (String) take);
-
-                    }
-
-                    @Override
-                    public void out(int index, Object msg) {
-
-                    }
-                })
+                .setLifeListener(new MyLifeListener())
                 .setOpenStateListener(new MyOpenStateListen(this))
                 .build();
     }
@@ -200,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * 防止内存泄漏
+     * 打印机连接状态
      */
     public static class MyOpenStateListen implements Monitor.OpenStateListener {
 
@@ -224,8 +183,6 @@ public class MainActivity extends AppCompatActivity {
         //运行时状态
         @Override
         public void currentState(final int index, int s, final String msg) {
-            // Log.e("DOAING", index + msg);
-
             if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
                 sr.get().runOnUiThread(new Runnable() {
                     @Override
@@ -238,6 +195,35 @@ public class MainActivity extends AppCompatActivity {
                 sr.get().setMsg(index, msg);
             }
 
+
+        }
+    }
+
+    public static class MyLifeListener implements Monitor.LifeListener{
+        @Override
+        public void in(int index, Object msg) {
+
+            //持久化的地方
+            Log.e("DOAING", "添加 " + msg + " 到 " + index + " 打印机序列");
+
+        }
+
+        @Override
+        public void print(int index, GpService gpService,Object take) {
+
+            //打印方法
+
+            Utils.sendReceiptWithResponse(index,gpService, (String) take);
+
+
+        }
+
+        @Override
+        public void out(int index, Object msg) {
+
+
+            //修改
+            Log.e("DOAING", index + "打印机打印完成：" + msg);
 
         }
     }

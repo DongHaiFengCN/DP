@@ -5,22 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.RemoteException;
-import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.gprinter.aidl.GpService;
-import com.gprinter.command.EscCommand;
 import com.gprinter.command.GpCom;
-import com.gprinter.command.GpUtils;
-import com.gprinter.command.LabelCommand;
 import com.gprinter.io.GpDevice;
 import com.gprinter.io.PortParameters;
 import com.gprinter.service.GpPrintService;
 
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -34,7 +26,7 @@ class Monitor {
     private BroadcastReceiver realStatusBroadcastReceiver;
     private boolean isRun;
     private static final int CONNECTING = 0;
-    static final int CONNECTED = 1;
+    private static final int CONNECTED = 1;
     private static final int DISCONNECT = 2;
     private Context context;
     private String ip;
@@ -45,16 +37,6 @@ class Monitor {
     private static final int MAIN_QUERY_PRINTER_STATUS = 0xfe;
     private GpService gpService;
     private final Object object = new Object();
-    private int MAXIMUM_RECONNECTION_NUMBER = 5;
-    private int connectNumber;
-
-    private volatile long currentTimeA = 0;
-    private volatile long MAXIMUM_TIMEOUT = 5000;
-
-    private Object cache;
-
-    private Timer timer;
-    private TimerTask timerTask;
 
     private Monitor(Builder builder) {
         this.index = builder.index;
@@ -73,7 +55,6 @@ class Monitor {
 
         Log.e("DOAING", workQueue.toString());
 
-        connectNumber = 0;
         isRun = true;
         //注册打开打印机状态广播
         registerOpenPortBroadcast();
@@ -100,7 +81,6 @@ class Monitor {
     void closePort() {
 
         if (gpService == null) return;
-        currentTimeA = 0;
         if (isRun) {
             try {
                 gpService.closePort(index);
@@ -119,22 +99,6 @@ class Monitor {
 
 
     private void processData() {
-     /*   timer = new Timer();
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-
-                //如果超过5秒还没有打印完成说明打印机出问题了
-                if (currentTimeA != 0
-                        && (System.currentTimeMillis() - currentTimeA) > MAXIMUM_TIMEOUT) {
-
-                    openStateListener.currentState(index, DISCONNECT, "打印机没有响应");
-                    closePort();
-
-                }
-            }
-        };
-        timer.schedule(timerTask, 0, MAXIMUM_TIMEOUT);*/
 
         MyApplication.getExecutor().execute(new Runnable() {
             @Override
@@ -166,7 +130,7 @@ class Monitor {
     /**
      * 添加数据到打印机的工作队列
      *
-     * @param object
+     * @param object 数据
      */
     void addMsgToWorkQueue(Object object) {
 
@@ -235,7 +199,7 @@ class Monitor {
          *
          * @param openStateListener 接口
          */
-        public Builder setOpenStateListener(OpenStateListener openStateListener) {
+        Builder setOpenStateListener(OpenStateListener openStateListener) {
             this.openStateListener = openStateListener;
             return this;
         }
@@ -271,7 +235,6 @@ class Monitor {
 
                     } else if (type == GpDevice.STATE_VALID_PRINTER) {
 
-                        MonitorSelector.getInstance().addMonitor(Monitor.this);
 
                         openStateListener.openState(index, CONNECTED, "已连接");
                         //初始化监听
@@ -370,7 +333,6 @@ class Monitor {
         } else {
             synchronized (object) {
                 object.notify();
-                cache = null;
             }
         }
     }
@@ -389,32 +351,6 @@ class Monitor {
         void print(int index, GpService gpService, Object take);
 
         void out(int index, Object msg);
-    }
-
-    void sendReceiptWithResponse(String msg) {
-        EscCommand esc = new EscCommand();
-        esc.addPrintAndFeedLines((byte) 3);
-        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印居中
-        /* 打印文字 */
-        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印左对齐
-        esc.addText(msg + "\r\n"); // 打印结束
-        // 加入查询打印机状态，打印完成后，此时会接收到GpCom.ACTION_DEVICE_STATUS广播
-        esc.addQueryPrinterStatus();
-        Vector<Byte> datas = esc.getCommand(); // 发送数据
-        byte[] bytes = GpUtils.ByteTo_byte(datas);
-        String sss = Base64.encodeToString(bytes, Base64.DEFAULT);
-        int rs;
-        try {
-            rs = gpService.sendEscCommand(index, sss);
-            GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rs];
-            if (r != GpCom.ERROR_CODE.SUCCESS) {
-
-                Log.e("DOAING", "错误信息：" + GpCom.getErrorText(r));
-            }
-        } catch (RemoteException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 }
 

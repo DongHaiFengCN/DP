@@ -8,13 +8,12 @@ import com.gprinter.aidl.GpService;
 import com.gprinter.command.EscCommand;
 import com.gprinter.command.GpCom;
 import com.gprinter.command.GpUtils;
-import com.gprinter.command.LabelCommand;
 
 import java.util.Vector;
 
-public class Utils {
+class Utils {
 
-    public static void sendReceiptWithResponse(int index, GpService gpService, String msg) {
+    static void sendReceiptWithResponse(int index, GpService gpService, String msg) {
         EscCommand esc = new EscCommand();
         esc.addPrintAndFeedLines((byte) 3);
         esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印居中
