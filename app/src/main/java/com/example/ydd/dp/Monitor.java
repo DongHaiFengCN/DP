@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.gprinter.aidl.GpService;
 import com.gprinter.command.GpCom;
