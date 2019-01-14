@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     Monitor m1, m2;
 
-    TextView t1,t2;
+    TextView t1, t2;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -48,11 +48,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
     }
 
-    void setMsg(int index,String msg) {
+    void setMsg(int index, String msg) {
 
-        if(index==1){
+        if (index == 1) {
             t1.setText(msg);
-        }else {
+        } else {
             t2.setText(msg);
         }
 
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void openWifi1(View view) {
 
-       m1.openPort();
+        m1.openPort();
 
     }
 
@@ -113,15 +113,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public void p2(View view) {
 
-        m2.addMsgToWorkQueue( "1 --二号");
-        m2.addMsgToWorkQueue( "2 --二号");
-        m2.addMsgToWorkQueue( "3 --二号");
-        m2.addMsgToWorkQueue( "4 --二号");
-        m2.addMsgToWorkQueue( "5 --二号");
-        m2.addMsgToWorkQueue( "6 --二号");
+        m2.addMsgToWorkQueue("1 --二号");
+        m2.addMsgToWorkQueue("2 --二号");
+        m2.addMsgToWorkQueue("3 --二号");
+        m2.addMsgToWorkQueue("4 --二号");
+        m2.addMsgToWorkQueue("5 --二号");
+        m2.addMsgToWorkQueue("6 --二号");
     }
 
     @Override
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static class MyLifeListener implements Monitor.LifeListener{
+    public static class MyLifeListener implements Monitor.LifeListener {
         @Override
         public void in(int index, Object msg) {
 
@@ -209,11 +208,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void print(int index, GpService gpService,Object take) {
+        public void print(int index, GpService gpService, Object take) {
 
             //打印方法
 
-            Utils.sendReceiptWithResponse(index,gpService, (String) take);
+            Utils.sendReceiptWithResponse(index, gpService, (String) take);
 
 
         }

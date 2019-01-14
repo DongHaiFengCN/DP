@@ -38,6 +38,9 @@ class Monitor {
     private GpService gpService;
     private final Object object = new Object();
 
+
+
+
     private Monitor(Builder builder) {
         this.index = builder.index;
         this.context = builder.context;
@@ -50,10 +53,7 @@ class Monitor {
      * 发起打印机连接/重启（必须要先调用关闭方法）
      */
     void openPort() {
-
         if (isRun) return;
-
-        Log.e("DOAING", workQueue.toString());
 
         isRun = true;
         //注册打开打印机状态广播
@@ -71,6 +71,8 @@ class Monitor {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
+
+
             }
         });
     }
