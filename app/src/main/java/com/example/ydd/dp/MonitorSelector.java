@@ -1,7 +1,5 @@
 package com.example.ydd.dp;
 
-import android.util.Log;
-
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MonitorSelector {
@@ -22,17 +20,11 @@ public class MonitorSelector {
         return monitorSelector;
     }
 
-    public boolean addMonitor(Monitor monitor) {
+     void addMonitor(Monitor monitor) {
 
-        if (monitor == null) {
-            return false;
-        }
+        monitors[monitor.getIndex()] = monitor;
 
-        if (monitors[monitor.getIndex()] == null) {
-            monitors[monitor.getIndex()] = monitor;
-            return true;
-        }
-        return false;
+
     }
 
     /**
@@ -49,11 +41,11 @@ public class MonitorSelector {
             addFailureMsgQueue(msg);
 
         } else {
-            monitor.addMsgToQueue(msg);
+            monitor.addMsgToWorkQueue(msg);
         }
     }
 
-    private void addFailureMsgQueue(Object msg) {
+    public void addFailureMsgQueue(Object msg) {
         try {
             failureMsgQueue.put(msg);
         } catch (InterruptedException e) {
@@ -61,12 +53,6 @@ public class MonitorSelector {
         }
     }
 
-    public void getIndexPrinterStatus(int index) {
-
-        if (monitors[index] == null) return;
-
-        monitors[index].queryCurrentPrintConnectStatus();
-    }
 
     /**
      * 一个一个的把为找到打印机的单子拿出来
@@ -83,5 +69,9 @@ public class MonitorSelector {
             }
         }
         return null;
+    }
+    public void closeIndexMonitor(int index){
+
+        monitors[index].closePort();
     }
 }

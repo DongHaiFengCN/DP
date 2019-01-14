@@ -6,38 +6,28 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/msg"
+        android:layout_width="match_parent"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_height="45dp" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="openWifi1"
-        android:text="连接wifi1" />
+        android:text="连接打印机1" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="openWifi2"
-        android:text="连接wifi2" />
+        android:onClick="closeWifi2"
+        android:text="关闭打印机1" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="getPrinterStatusClicked1"
-        android:text="wifi1打印" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="getPrinterStatusClicked2"
-        android:text="wifi2打印" />
+        android:text="打印机1打印" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="getStatus"
-        android:text="Wi-Fi 2 状态"
-        />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="get"
-        android:text="一个接一个获取未打印的单子" />
 </LinearLayout>

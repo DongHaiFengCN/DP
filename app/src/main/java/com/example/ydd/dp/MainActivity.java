@@ -4,14 +4,24 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Looper;
+import android.support.annotation.MainThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
+
+import com.gprinter.aidl.GpService;
+
+import java.lang.ref.WeakReference;
+
 
 public class MainActivity extends AppCompatActivity {
 
     Monitor m1, m2;
+
+    TextView t1;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -19,60 +29,99 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
 
+        t1 = findViewById(R.id.msg);
+
+
+        m1 = new Monitor.Builder(getApplicationContext())
+                .setIndex(1)
+                .setIp("192.168.2.248")
+                .setLifeListener(new Monitor.LifeListener() {
+                    @Override
+                    public void in(int index, Object msg) {
+
+                        Log.e("DOAING", "添加 " + msg + " 到 " + index + " 打印机序列");
+
+                    }
+
+                    @Override
+                    public void print(int index, GpService gpService,Object take) {
+
+                        Log.e("DOAING", index + "打印机执行打印：" + take);
+
+                        Utils.sendReceiptWithResponse(index,gpService, (String) take);
+
+
+                    }
+
+                    @Override
+                    public void out(int index, Object msg) {
+
+                        Log.e("DOAING", index + "打印机打印完成：" + msg);
+
+                    }
+                })
+                .setOpenStateListener(new MyOpenStateListen(this))
+                .build();
+
     }
 
+    void setMsg(String msg) {
+
+        t1.setText(msg);
+    }
 
     public void openWifi1(View view) {
 
-  /*      m1 = new Monitor.Builder(getApplicationContext())
-                .setIndex(0)
-                .setIp("192.168.2.200")
-                .build();
-
-        m1.setOpenStateListener(new MyOpenStateListen(m1) );*/
+        m1.openPort();
 
     }
 
-    public void openWifi2(View view) {
+    public void closeWifi2(View view) {
 
-        m2 = new Monitor.Builder(getApplicationContext())
-                .setIndex(1)
-                .setIp("192.168.2.248")
-                .build();
-        m2.setOpenStateListener(new MyOpenStateListen(m2));
+        MonitorSelector.getInstance().closeIndexMonitor(1);
     }
 
-    public void getPrinterStatusClicked1(View view) {
 
-
-      // MonitorSelector.getInstance().addMsgToQueue(0, "0");
-
-    }
-
-    int count;
     public void getPrinterStatusClicked2(View view) {
 
-       MonitorSelector.getInstance().addMsgToQueue(1, (count++)+"");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int count = 3;
+
+                m1.addMsgToWorkQueue(count + "");
+
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int count = 2;
+
+                m1.addMsgToWorkQueue(count + "");
+
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int count = 1;
+
+                m1.addMsgToWorkQueue(count + "");
+
+            }
+        }).start();
 
     }
 
-    public void getStatus(View view){
-
-      //  MonitorSelector.getInstance().getIndexPrinterStatus(1);
-
-    }
-
-    public void get(View view){
-
-        //Log.e("DOAING", MonitorSelector.getInstance().takeFailMsgOneByOne()+"");
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
         Log.e("DOAING", "干掉了？？");
-        }
+    }
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_PHONE_STATE,
@@ -100,32 +149,47 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     /**
      * 防止内存泄漏
      */
     public static class MyOpenStateListen implements Monitor.OpenStateListener {
 
-        Monitor monitor;
 
-        MyOpenStateListen(Monitor monitor) {
+        WeakReference<MainActivity> sr;
 
-            this.monitor = monitor;
+        MyOpenStateListen(MainActivity activity) {
+
+            sr = new WeakReference<>(activity);
+
         }
 
+        //启动是状态
         @Override
-        public void state(int index, int s, String msg) {
-            //启动成功
-            if (s == Monitor.CONNECTED) {
+        public void openState(int index, int s, String msg) {
 
-                if (MonitorSelector.getInstance().addMonitor(monitor)) {
+            sr.get().setMsg(index + msg);
 
-                    Log.e("DOAING", index + "添加成功");
-                } else {
-                    Log.e("DOAING", "当前id已被占用/打印机为空");
-                }
-            }else {
-                Log.e("DOAING", index+msg);
+        }
+
+        //运行时状态
+        @Override
+        public void currentState(final int index, int s, final String msg) {
+            // Log.e("DOAING", index + msg);
+
+            if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+                sr.get().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sr.get().setMsg(index + msg);
+                    }
+                });
+            } else {
+
+                sr.get().setMsg(index + msg);
             }
+
+
         }
     }
 
