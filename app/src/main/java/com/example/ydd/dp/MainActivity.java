@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     Monitor m1, m2;
 
-    TextView t1;
+    TextView t1,t2;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -29,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
 
-        t1 = findViewById(R.id.msg);
+        t1 = findViewById(R.id.msg1);
+        t2 = findViewById(R.id.msg2);
 
 
         m1 = new Monitor.Builder(getApplicationContext())
@@ -46,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void print(int index, GpService gpService,Object take) {
 
-                        Log.e("DOAING", index + "打印机执行打印：" + take);
 
                         Utils.sendReceiptWithResponse(index,gpService, (String) take);
 
@@ -63,58 +63,107 @@ public class MainActivity extends AppCompatActivity {
                 .setOpenStateListener(new MyOpenStateListen(this))
                 .build();
 
+
+        m2 = new Monitor.Builder(getApplicationContext())
+                .setIndex(2)
+                .setIp("192.168.2.200")
+                .setLifeListener(new Monitor.LifeListener() {
+                    @Override
+                    public void in(int index, Object msg) {
+
+                    }
+
+                    @Override
+                    public void print(int index, GpService gpService, Object take) {
+
+                        Utils.sendReceiptWithResponse(index,gpService, (String) take);
+
+                    }
+
+                    @Override
+                    public void out(int index, Object msg) {
+
+                    }
+                })
+                .setOpenStateListener(new MyOpenStateListen(this))
+                .build();
     }
 
-    void setMsg(String msg) {
+    void setMsg(int index,String msg) {
 
-        t1.setText(msg);
+        if(index==1){
+            t1.setText(msg);
+        }else {
+            t2.setText(msg);
+        }
+
     }
 
     public void openWifi1(View view) {
 
-        m1.openPort();
+       m1.openPort();
 
     }
 
-    public void closeWifi2(View view) {
 
-        MonitorSelector.getInstance().closeIndexMonitor(1);
-    }
-
-
-    public void getPrinterStatusClicked2(View view) {
+    public void p1(View view) {
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                int count = 3;
 
-                m1.addMsgToWorkQueue(count + "");
 
-            }
-        }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int count = 2;
-
-                m1.addMsgToWorkQueue(count + "");
+                m1.addMsgToWorkQueue("1--一号");
 
             }
         }).start();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                int count = 1;
 
-                m1.addMsgToWorkQueue(count + "");
+
+                m1.addMsgToWorkQueue("2--一号");
+
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+
+                m1.addMsgToWorkQueue("3--一号");
+
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+
+                m1.addMsgToWorkQueue("4--一号");
 
             }
         }).start();
 
     }
 
+    public void openWifi2(View view) {
+
+        m2.openPort();
+
+    }
+
+
+
+    public void p2(View view) {
+
+        m2.addMsgToWorkQueue( "1 --二号");
+        m2.addMsgToWorkQueue( "2 --二号");
+        m2.addMsgToWorkQueue( "3 --二号");
+        m2.addMsgToWorkQueue( "4 --二号");
+        m2.addMsgToWorkQueue( "5 --二号");
+        m2.addMsgToWorkQueue( "6 --二号");
+    }
 
     @Override
     protected void onDestroy() {
@@ -168,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void openState(int index, int s, String msg) {
 
-            sr.get().setMsg(index + msg);
+            sr.get().setMsg(index, msg);
 
         }
 
@@ -181,12 +230,12 @@ public class MainActivity extends AppCompatActivity {
                 sr.get().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        sr.get().setMsg(index + msg);
+                        sr.get().setMsg(index, msg);
                     }
                 });
             } else {
 
-                sr.get().setMsg(index + msg);
+                sr.get().setMsg(index, msg);
             }
 
 

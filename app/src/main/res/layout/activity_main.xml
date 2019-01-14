@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/msg"
+        android:id="@+id/msg1"
         android:layout_width="match_parent"
         android:textSize="20sp"
         android:gravity="center"
@@ -18,16 +18,40 @@
         android:layout_height="wrap_content"
         android:onClick="openWifi1"
         android:text="连接打印机1" />
-    <Button
+<!--    <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="closeWifi2"
-        android:text="关闭打印机1" />
+        android:onClick="closeWifi1"
+        android:text="关闭打印机1" />-->
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="getPrinterStatusClicked2"
+        android:onClick="p1"
         android:text="打印机1打印" />
+
+
+    <TextView
+        android:id="@+id/msg2"
+        android:layout_width="match_parent"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_height="45dp" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="openWifi2"
+        android:text="连接打印机2" />
+<!--    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="closeWifi2"
+        android:text="关闭打印机2" />-->
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="p2"
+        android:text="打印机2打印" />
 
 </LinearLayout>

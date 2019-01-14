@@ -1,23 +1,32 @@
 package com.example.ydd.dp;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.RemoteException;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.gprinter.aidl.GpService;
+import com.gprinter.command.EscCommand;
 import com.gprinter.command.GpCom;
+import com.gprinter.command.GpUtils;
+import com.gprinter.command.LabelCommand;
 import com.gprinter.io.GpDevice;
 import com.gprinter.io.PortParameters;
 import com.gprinter.service.GpPrintService;
+
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author dong
- *
- *  {每个打印机都有一个监听器，来处理自己的打印序列，和打印机的状态维护，通知用户等等}
+ * <p>
+ * {每个打印机都有一个监听器，来处理自己的打印序列，和打印机的状态维护，通知用户等等}
  */
 class Monitor {
 
@@ -36,7 +45,7 @@ class Monitor {
     private static final int MAIN_QUERY_PRINTER_STATUS = 0xfe;
     private GpService gpService;
     private final Object object = new Object();
-    private int MAXIMUM_RECONNECTION_NUMBER = 3;
+    private int MAXIMUM_RECONNECTION_NUMBER = 5;
     private int connectNumber;
 
     private volatile long currentTimeA = 0;
@@ -61,6 +70,9 @@ class Monitor {
     void openPort() {
 
         if (isRun) return;
+
+        Log.e("DOAING", workQueue.toString());
+
         connectNumber = 0;
         isRun = true;
         //注册打开打印机状态广播
@@ -102,21 +114,12 @@ class Monitor {
             realStatusBroadcastReceiver = null;
         }
 
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-        if (timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
-        }
 
-        openStateListener.openState(index,DISCONNECT,"手动关闭");
     }
 
 
     private void processData() {
-        timer = new Timer();
+     /*   timer = new Timer();
         timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -125,13 +128,13 @@ class Monitor {
                 if (currentTimeA != 0
                         && (System.currentTimeMillis() - currentTimeA) > MAXIMUM_TIMEOUT) {
 
-                    openStateListener.currentState(index, DISCONNECT, "石沉大海:");
+                    openStateListener.currentState(index, DISCONNECT, "打印机没有响应");
                     closePort();
 
                 }
             }
         };
-        timer.schedule(timerTask, 0, MAXIMUM_TIMEOUT);
+        timer.schedule(timerTask, 0, MAXIMUM_TIMEOUT);*/
 
         MyApplication.getExecutor().execute(new Runnable() {
             @Override
@@ -139,11 +142,12 @@ class Monitor {
 
                 while (isRun) {
 
+                    //监测到一组新的订单
                     if (workQueue.size() > 0) {
+                        //查询一下打印机状态
 
-                        //查询打印机的状态，当前线程堵塞
                         queryCurrentPrintConnectStatus();
-                        currentTimeA = System.currentTimeMillis();
+
                         try {
                             synchronized (object) {
                                 object.wait();
@@ -151,8 +155,8 @@ class Monitor {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                    } else {
-                        currentTimeA = 0;
+
+
                     }
                 }
             }
@@ -202,7 +206,7 @@ class Monitor {
         private final Context context;
         private OpenStateListener openStateListener;
 
-        Builder( Context context) {
+        Builder(Context context) {
             this.context = context.getApplicationContext();
         }
 
@@ -312,46 +316,21 @@ class Monitor {
                         int status = intent.getIntExtra(GpCom.EXTRA_PRINTER_REAL_STATUS, 16);
                         if (status == GpCom.STATE_NO_ERR) {
                             openStateListener.currentState(index, CONNECTED, "开始打印");
-
-                            if (connectNumber != 0) {
-                                connectNumber = 0;
-                            }
-
-                            if (cache != null) {
-
-                                lifeListener.print(index, gpService, cache);
-
-                            }else {
-
-                                try {
-                                    if (workQueue.size() > 0) {
-
-                                        cache = workQueue.take();
-
-                                        lifeListener.print(index, gpService, cache);
-                                    }
-
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                            printMethod();
 
                         } else {
 
                             if ((byte) (status & GpCom.STATE_TIMES_OUT) > 0) {
 
-                                queryCurrentPrintConnectStatus();
-                                connectNumber++;
-                                //连接超时重试三次，如果超过就断开连接
-                                if (connectNumber == MAXIMUM_RECONNECTION_NUMBER) {
-                                    openStateListener.currentState(index, DISCONNECT, "连接超时,检查网络重新连接");
-                                    closePort();
-                                }
+                                openStateListener.currentState(index, DISCONNECT, "连接超时,检查网络重新连接");
+
+                                closePort();
                             }
                             if ((byte) (status & GpCom.STATE_PAPER_ERR) > 0 || (byte) (status & GpCom.STATE_COVER_OPEN) > 0) {
 
-                                openStateListener.currentState(index, DISCONNECT, "设备缺纸/开盖,处理完成重新连接");
-                                closePort();
+                                openStateListener.currentState(index, DISCONNECT, "设备缺纸/开盖");
+                                printMethod();
+
                             }
                             if ((byte) (status & GpCom.STATE_ERR_OCCURS) > 0) {
 
@@ -368,15 +347,7 @@ class Monitor {
                     }
                 } else if (GpCom.ACTION_RECEIPT_RESPONSE.equals(action)) {
 
-                    synchronized (object) {
-                        object.notify();
-                        currentTimeA = 0;
-                        openStateListener.currentState(index, CONNECTING, "打印完毕");
-                        if (lifeListener != null) {
-                            lifeListener.out(index, cache);
-                        }
-                        cache = null;
-                    }
+                    printMethod();
                 }
             }
         };
@@ -384,6 +355,24 @@ class Monitor {
         IntentFilter intentFilter = new IntentFilter(GpCom.ACTION_DEVICE_REAL_STATUS);
         intentFilter.addAction(GpCom.ACTION_RECEIPT_RESPONSE);
         context.registerReceiver(realStatusBroadcastReceiver, intentFilter);
+    }
+
+    private void printMethod() {
+        if (workQueue.size() > 0) {
+
+
+            try {
+                lifeListener.print(index, gpService, workQueue.take());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            synchronized (object) {
+                object.notify();
+                cache = null;
+            }
+        }
     }
 
 
@@ -402,5 +391,32 @@ class Monitor {
         void out(int index, Object msg);
     }
 
+    void sendReceiptWithResponse(String msg) {
+        EscCommand esc = new EscCommand();
+        esc.addPrintAndFeedLines((byte) 3);
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印居中
+        /* 打印文字 */
+        esc.addSelectJustification(EscCommand.JUSTIFICATION.CENTER);// 设置打印左对齐
+        esc.addText(msg + "\r\n"); // 打印结束
+        // 加入查询打印机状态，打印完成后，此时会接收到GpCom.ACTION_DEVICE_STATUS广播
+        esc.addQueryPrinterStatus();
+        Vector<Byte> datas = esc.getCommand(); // 发送数据
+        byte[] bytes = GpUtils.ByteTo_byte(datas);
+        String sss = Base64.encodeToString(bytes, Base64.DEFAULT);
+        int rs;
+        try {
+            rs = gpService.sendEscCommand(index, sss);
+            GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rs];
+            if (r != GpCom.ERROR_CODE.SUCCESS) {
 
+                Log.e("DOAING", "错误信息：" + GpCom.getErrorText(r));
+            }
+        } catch (RemoteException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }
+
+
+
